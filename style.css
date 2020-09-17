@@ -1,0 +1,40 @@
+
+#placa{
+color:black;
+margin-bottom: 10px;
+padding: 10px;
+font-size: 34px;
+font-weight: 600;
+text-align: center;
+}
+
+#achou{
+    background-color: black;
+    color:whitesmoke;
+    margin-bottom: 10px;
+    padding: 10px;
+    font-size: 34px;
+    font-weight: 600;
+    width: 400px;
+    text-align: center;
+    }
+
+#root{
+ display: flex;
+ flex-direction: column;
+ align-items: center;
+ justify-content: center;
+}
+
+#webcam{
+height: 300;
+}
+
+button{
+    width: 150px;
+    height: 50px;
+    background-color: blanchedalmond;
+    box-shadow: inset;
+    margin-left: 15px;
+    margin-bottom: 15px;
+}

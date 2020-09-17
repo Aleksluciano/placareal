@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Tesseract.js Video Streaming Recognition</title>
+    <link rel="stylesheet" href="style.css">
+    <script
+      type="text/javascript"
+      src="https://unpkg.com/webcam-easy/dist/webcam-easy.min.js"
+    ></script>
+    <script src="https://unpkg.com/tesseract.js@v2.0.0-beta.1/dist/tesseract.min.js"></script>
+  </head>
+  <body>
+
+    <div id="root">
+      <div id="messages">
+        <br>
+        <br>
+  
+        <h3 id="placa"></h3>
+        <h1 id="achou">PLACA</h1>
+      </div>
+      <div>
+      <button onclick="play()">PLAY</button>
+      <button onclick="flip()">FLIP</button> 
+    </div>
+      <video id="webcam" autoplay playsinline ></video>
+      <canvas id="canvas" class="d-none"></canvas>
+      <div id="sep"></div>
+  
+    </div>
+    <script>
+      const webcamElement = document.getElementById("webcam");
+      const canvasElement = document.getElementById("canvas");
+      const spanElement = document.getElementById("placa");
+      const span2Element =  document.getElementById("achou");
+      const webcam = new Webcam(webcamElement, "user", canvasElement);
+
+      webcam
+        .start()
+        .then((result) => {
+          console.log("webcam started");
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+
+      const { createWorker, createScheduler } = Tesseract;
+      const scheduler = createScheduler();
+      // const video = document.getElementById('webcam');
+      const messages = document.getElementById("messages");
+      let timerId = null;
+
+      const addMessage = (m, bold) => {
+        window.scrollTo(0,0);
+        let msg = m;
+        if(bold)msg = msg + bold;
+        if(msg)spanElement.innerHTML = msg;
+        let re = /[A-Z]{3}-[0-9]{4}/;
+        let achouPlaca = msg.match(re);
+        if(achouPlaca)span2Element.innerHTML = achouPlaca[0];
+        console.log(msg)
+       
+      };
+
+      const doOCR = async () => {
+        canvasElement.width = 640;
+        canvasElement.height = 360;
+        canvasElement.getContext("2d").drawImage(webcamElement, 0, 0, 640, 360);
+        const start = new Date();
+        const {
+          data: { text },
+        } = await scheduler.addJob("recognize", canvasElement);
+        const end = new Date();
+        // addMessage(
+        //   `[${start.getMinutes()}:${start.getSeconds()} - ${end.getMinutes()}:${end.getSeconds()}], ${
+        //     (end - start) / 1000
+        //   } s`
+        // );
+        text.split("\n").forEach((line) => {
+          addMessage(line);
+        });
+      };
+
+      (async () => {
+        // addMessage("Inicio");
+        for (let i = 0; i < 4; i++) {
+          const worker = createWorker();
+          await worker.load();
+          await worker.loadLanguage("eng");
+          await worker.initialize("eng");
+          scheduler.addWorker(worker);
+        }
+        // addMessage("Inicio");
+        webcamElement.addEventListener("play", play());
+        webcamElement.addEventListener("pause", () => {
+          clearInterval(timerId);
+        });
+        addMessage("Agora você pode dar o play");
+        webcamElement.controls = true;
+     
+   
+      })();
+      function play() {
+        if(timerId)clearInterval(timerId);
+        timerId = setInterval(doOCR, 1000);
+      }
+
+       function flip(){
+        webcam.flip();
+        webcam.start();  
+       }
+    </script>
+  </body>
+</html>
